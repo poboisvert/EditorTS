@@ -127,6 +127,11 @@ venv.bak/
 rts/node_modules
 rts/package-lock.json
 
+jbook/node_modules
+
+redux-ts/node_modules
+redux-ts/package-lock.json
+
 # mypy
 .mypy_cache/
 .dmypy.json
