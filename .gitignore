@@ -5,6 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Node
 bundler/node_modules
 
 # Distribution / packaging
@@ -120,6 +122,10 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
+# Folder
+rts/node_modules
+rts/package-lock.json
 
 # mypy
 .mypy_cache/
