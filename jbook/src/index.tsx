@@ -1,35 +1,47 @@
 import * as esbuild from "esbuild-wasm";
 import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
+import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
 
 const App = () => {
+  // Set State
   const ref = useRef<any>();
   const [input, setInput] = useState("");
   const [code, setCode] = useState("");
 
+  // Activate ESBuild
   const startService = async () => {
     ref.current = await esbuild.startService({
       worker: true,
       wasmURL: "/esbuild.wasm",
     });
   };
-
+  // REACT Hook
   useEffect(() => {
     startService();
   }, []);
 
+  // FORM function
   const onClick = async () => {
     if (!ref.current) {
       return;
     }
 
-    const result = await ref.current.transform(input, {
-      loader: "jsx",
-      target: "es2015",
+    const result = await ref.current.build({
+      entryPoints: ["index.js"],
+      bundle: true,
+      write: false,
+      plugins: [unpkgPathPlugin()],
+      define: {
+        "process.env.NODE_ENV": "'production'",
+        global: "window",
+      },
     });
 
+    console.log(result);
+
     // Try async () => {}
-    console.log(result.code);
+    setCode(result.outputFiles[0].text);
   };
   return (
     <div>
