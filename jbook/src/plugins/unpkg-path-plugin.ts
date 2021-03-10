@@ -1,5 +1,22 @@
 import * as esbuild from "esbuild-wasm";
 import axios from "axios";
+import localForage from "localforage";
+
+// NPM install locaforage and set a const
+const fileCache = localForage.createInstance({
+  name: "filecache",
+});
+
+/* const fileCache = localForage.createInstance({
+  name: "filecache",
+});
+
+(async () => {
+  await fileCache.setItem("color", "black");
+
+  const color = await fileCache.getItem("color");
+  console.log(color);
+})(); */
 
 export const unpkgPathPlugin = () => {
   return {
@@ -24,7 +41,7 @@ export const unpkgPathPlugin = () => {
           };
         }
 
-        // Final import
+        // Final import package
         return {
           namespace: "a",
           // If a package has a SRC folder and inside a helpers. This will solve the import issue
@@ -38,31 +55,45 @@ export const unpkgPathPlugin = () => {
           };
         } */
       });
-
-      // ON LOAD
+      //
+      //
+      // ON LOAD Function
+      //
+      //
       build.onLoad({ filter: /.*/ }, async (args: any) => {
         console.log("onLoad", args);
 
-        // ON LOAD - DOWNLOAD, IMPORT and load a plugin
         if (args.path === "index.js") {
           return {
             loader: "jsx",
             contents: `
-              import React, {useState} from "react";
-              console.log(React,useState)
-            `,
+            import React, { useState } from 'react-select';
+            console.log(React, useState);
+          `,
           };
         }
+        // localforage - cache validation
+        // Mouse over "cacheResult" is unknown
+        const cachedResult = await fileCache.getItem<esbuild.OnLoadResult>(
+          args.path
+        );
+
+        if (cachedResult) {
+          return cachedResult;
+        }
         // GET AXIOS
-        const { data, request } = await axios.get(args.path);
-        // Display the imported module
-        // console.log(data);
-        return {
+        const { data, request } = await axios.get(args.path); // Use as a key
+
+        const result: esbuild.OnLoadResult = {
           loader: "jsx",
           contents: data,
-          // If a package has a SRC folder and inside a helpers. This will solve the import issue
           resolveDir: new URL("./", request.responseURL).pathname,
         };
+        // Display the imported module
+        // console.log(data);
+        await fileCache.setItem(args.path, result);
+
+        return result;
       });
     },
   };
