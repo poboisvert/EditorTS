@@ -2,6 +2,7 @@ import * as esbuild from "esbuild-wasm";
 import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
+import { fetchPlugin } from "./plugins/fetch-plugin";
 
 const App = () => {
   // Set State
@@ -34,13 +35,14 @@ const App = () => {
       write: false,
 
       // Create the plugin
-      plugins: [unpkgPathPlugin(input)],
+      plugins: [unpkgPathPlugin(), fetchPlugin(input)],
       define: {
         "process.env.NODE_ENV": "'production'",
         global: "window",
       },
     });
 
+    // See the code from the plugin side
     console.log(result);
 
     // Try async () => {}

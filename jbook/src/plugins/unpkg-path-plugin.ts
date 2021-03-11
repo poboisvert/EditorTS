@@ -2,11 +2,6 @@ import * as esbuild from "esbuild-wasm";
 import axios from "axios";
 import localForage from "localforage";
 
-// NPM install locaforage and set a const
-const fileCache = localForage.createInstance({
-  name: "filecache",
-});
-
 /* const fileCache = localForage.createInstance({
   name: "filecache",
 });
@@ -18,20 +13,39 @@ const fileCache = localForage.createInstance({
   console.log(color);
 })(); */
 
-export const unpkgPathPlugin = (inputCode: string) => {
+export const unpkgPathPlugin = () => {
   return {
     name: "unpkg-path-plugin",
     setup(build: esbuild.PluginBuild) {
+      //
+      //
       // ON RESOLVE
+      //
+      //
+      build.onResolve({ filter: /(^index\.js$)/ }, () => {
+        return { path: "index.js", namespace: "a" };
+      });
+      //
+      // Relative path ./ or ../
+      build.onResolve({ filter: /^\.+\// }, (args: any) => {
+        // Find ../ or ./
+        return {
+          namespace: "a",
+          path: new URL(args.path, "https://unpkg.com/" + args.resolveDir + "/")
+            .href,
+        };
+      });
+      //
+      // Root package
       build.onResolve({ filter: /.*/ }, async (args: any) => {
-        // console log
-        console.log("onResolve", args);
+        // Console Log
+        // console.log("onResolve", args);
         // Load module
         if (args.path === "index.js") {
           return { path: args.path, namespace: "a" };
         }
 
-        if (args.path.includes("./") || args.path.includes("../")) {
+        /*         if (args.path.includes("./") || args.path.includes("../")) {
           return {
             namespace: "a",
             path: new URL(
@@ -39,7 +53,7 @@ export const unpkgPathPlugin = (inputCode: string) => {
               "https://unpkg.com/" + args.resolveDir + "/"
             ).href,
           };
-        }
+        } */
 
         // Final import package
         return {
@@ -57,42 +71,6 @@ export const unpkgPathPlugin = (inputCode: string) => {
       });
       //
       //
-      // ON LOAD Function
-      //
-      //
-      build.onLoad({ filter: /.*/ }, async (args: any) => {
-        console.log("onLoad", args);
-
-        // From index.tsx - we load the information below
-        if (args.path === "index.js") {
-          return {
-            loader: "jsx",
-            contents: inputCode,
-          };
-        }
-        // localforage - cache validation
-        // Mouse over "cacheResult" is unknown
-        const cachedResult = await fileCache.getItem<esbuild.OnLoadResult>(
-          args.path
-        );
-
-        if (cachedResult) {
-          return cachedResult;
-        }
-        // GET AXIOS
-        const { data, request } = await axios.get(args.path); // Use as a key
-
-        const result: esbuild.OnLoadResult = {
-          loader: "jsx",
-          contents: data,
-          resolveDir: new URL("./", request.responseURL).pathname,
-        };
-        // Display the imported module
-        // console.log(data);
-        await fileCache.setItem(args.path, result);
-
-        return result;
-      });
     },
   };
 };
