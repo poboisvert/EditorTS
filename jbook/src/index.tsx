@@ -16,7 +16,7 @@ const App = () => {
       wasmURL: "/esbuild.wasm",
     });
   };
-  // REACT Hook
+  // REACT Hook - LOAD once
   useEffect(() => {
     startService();
   }, []);
@@ -28,10 +28,13 @@ const App = () => {
     }
 
     const result = await ref.current.build({
+      // ESBuild when he loads the file
       entryPoints: ["index.js"],
       bundle: true,
       write: false,
-      plugins: [unpkgPathPlugin()],
+
+      // Create the plugin
+      plugins: [unpkgPathPlugin(input)],
       define: {
         "process.env.NODE_ENV": "'production'",
         global: "window",
