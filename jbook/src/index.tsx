@@ -14,7 +14,7 @@ const App = () => {
   const startService = async () => {
     ref.current = await esbuild.startService({
       worker: true,
-      wasmURL: "/esbuild.wasm",
+      wasmURL: "https://unpkg.com/esbuild-wasm@0.9.0/esbuild.wasm",
     });
   };
   // REACT Hook - LOAD once
@@ -58,8 +58,13 @@ const App = () => {
         <button onClick={onClick}>Submit</button>
       </div>
       <pre>{code}</pre>
+      <iframe srcDoc={html}></iframe>
     </div>
   );
 };
+
+const html = `
+<h1>Local HTML DOC</h1>
+`;
 
 ReactDOM.render(<App />, document.querySelector("#root"));

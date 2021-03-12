@@ -86,7 +86,6 @@ export const fetchPlugin = (inputCode: string) => {
         const { data, request } = await axios.get(args.path); // Use as a key
 
         //
-
         // Cleaning
         //
         // CSS import patch END
