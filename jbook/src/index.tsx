@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { unpkgPathPlugin } from "./plugins/unpkg-path-plugin";
 import { fetchPlugin } from "./plugins/fetch-plugin";
+import CodeEditor from "./components/code-editor";
 
 const App = () => {
   // Set State
@@ -29,6 +30,9 @@ const App = () => {
     if (!ref.current) {
       return;
     }
+
+    // If the user reset innerHTML to ""
+    iframe.current.srcdoc = html;
 
     const result = await ref.current.build({
       // ESBuild when he loads the file
@@ -76,6 +80,10 @@ const App = () => {
   // Init first textarea and the iFrame hook
   return (
     <div>
+      <CodeEditor
+        initialValue="const a = 1;"
+        onChange={(value) => setInput(value)}
+      />
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
