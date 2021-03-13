@@ -7,6 +7,7 @@ import { fetchPlugin } from "./plugins/fetch-plugin";
 const App = () => {
   // Set State
   const ref = useRef<any>();
+  const iframe = useRef<any>();
   const [input, setInput] = useState("");
   const [code, setCode] = useState("");
 
@@ -14,9 +15,10 @@ const App = () => {
   const startService = async () => {
     ref.current = await esbuild.startService({
       worker: true,
-      wasmURL: "https://unpkg.com/esbuild-wasm@0.9.0/esbuild.wasm",
+      wasmURL: "https://unpkg.com/esbuild-wasm@0.8.27/esbuild.wasm",
     });
   };
+
   // REACT Hook - LOAD once
   useEffect(() => {
     startService();
@@ -43,11 +45,35 @@ const App = () => {
     });
 
     // See the code from the plugin side
-    console.log(result);
+    // console.log(result);
 
     // Try async () => {}
-    setCode(result.outputFiles[0].text);
+    // setCode(result.outputFiles[0].text);
+
+    iframe.current.contentWindow.postMessage(result.outputFiles[0].text, "*");
   };
+
+  // Second box to display the code from the textarea
+  const html = `
+    <html>
+      <head></head>
+      <body>
+        <div id="root"></div>
+        <script>
+          window.addEventListener('message', (event) => {
+            try {
+              eval(event.data);
+            } catch (err) {
+              const root = document.querySelector("#root");
+              root.innerHTML = "<div><b>" + err + "</b></div>"
+            }
+          }, false);
+        </script>
+      </body>
+    </html>
+  `;
+
+  // Init first textarea and the iFrame hook
   return (
     <div>
       <textarea
@@ -58,13 +84,16 @@ const App = () => {
         <button onClick={onClick}>Submit</button>
       </div>
       <pre>{code}</pre>
-      <iframe srcDoc={html}></iframe>
+      <iframe ref={iframe} sandbox="allow-scripts" srcDoc={html} />
     </div>
   );
 };
 
-const html = `
-<h1>Local HTML DOC</h1>
-`;
-
 ReactDOM.render(<App />, document.querySelector("#root"));
+
+/* import react from "react";
+import ReactDOM from "react-dom";
+
+const App = () => <h1>Hi there</h1>
+
+ReactDOM.render(<App />, document.querySelector("#root")); */
